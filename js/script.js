@@ -183,10 +183,12 @@ function initIntro() {
                         // All texts shown, do smooth final transition
                         introOverlay.classList.add('final-transition');
                         
-                        // Wait for transition to complete
+                        // Wait for transition to complete, then start typing animation
                         setTimeout(() => {
                             introOverlay.classList.add('hidden');
                             document.body.classList.remove('no-scroll');
+                            // Start typing animation after intro is hidden
+                            initTypingAnimation();
                         }, 2000);
                     }
                 }
@@ -234,6 +236,8 @@ navLinkItems.forEach(link => {
 });
 
 // ===== Active Navigation Link on Scroll =====
+const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+
 function updateActiveNav() {
     let current = '';
     
@@ -246,10 +250,19 @@ function updateActiveNav() {
         }
     });
     
+    // Update desktop nav
     navLinkItems.forEach(link => {
         link.classList.remove('active');
         if (link.getAttribute('href') === `#${current}`) {
             link.classList.add('active');
+        }
+    });
+    
+    // Update mobile nav
+    mobileNavItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === `#${current}`) {
+            item.classList.add('active');
         }
     });
 }
@@ -468,7 +481,7 @@ function initTypingAnimation() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    initTypingAnimation(); // Run this first!
+    // Don't start typing here - it will start after intro ends
     
     try {
         initCodeRotation();
