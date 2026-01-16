@@ -335,7 +335,7 @@ function animateNumber(element) {
 // ===== Fade In/Out Animation on Scroll =====
 // Select main content blocks in each section
 const contentBlocks = document.querySelectorAll(
-    '.hero-content, .hero-visual, .about-content, .about-text, .profile-image, .skill-card, .projects-grid, .project-card, .contact-content, .contact-item, .section-header, .stat-item, .social-links a'
+    '.hero-content, .hero-visual, .about-content, .about-text, .profile-image, .skill-card, .projects-grid, .project-card, .gallery-item, .contact-content, .contact-item, .section-header, .stat-item, .social-links a'
 );
 
 const fadeObserver = new IntersectionObserver((entries) => {
