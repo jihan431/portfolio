@@ -133,10 +133,10 @@ img {
 
 .bg-grid {
     position: fixed;
-    top: -350%;
-    left: -350%;
-    width: 800%;
-    height: 800%;
+    top: -700%;
+    left: -700%;
+    width: 1500%;
+    height: 1500%;
     background-image: 
         radial-gradient(ellipse at 70% 40%, rgba(0, 120, 255, 0.08) 0%, transparent 20%),
         radial-gradient(ellipse at 30% 60%, rgba(0, 120, 255, 0.08) 0%, transparent 20%),

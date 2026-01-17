@@ -107,7 +107,9 @@ window.addEventListener('scroll', () => {
             // Background Grid Rotation (Desktop Only)
             if (bgGrid && window.innerWidth > 1024 && !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
                 // Use stateless rotation based on scroll position for consistency
-                const rotation = window.pageYOffset * 0.05; 
+                // ATUR KECEPATAN ROTASI DISINI (Semakin kecil angka, semakin pelan)
+                const rotationSpeed = 0.0001; 
+                const rotation = window.pageYOffset * rotationSpeed; 
                 bgGrid.style.transform = `rotate(${rotation}deg)`;
                 
                 if (!bgGrid.classList.contains('scrolling')) {
