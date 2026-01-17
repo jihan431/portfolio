@@ -780,6 +780,7 @@ section {
     line-height: 1.8;
     overflow: hidden;
     height: 220px;
+    background-color: var(--bg-card);
 }
 
 .code-body .keyword { color: #c792ea; }
@@ -959,9 +960,9 @@ section {
 }
 
 .skill-card:hover {
-    background: rgba(30, 30, 30, 0.6);
     transform: translateY(-4px);
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .skill-icon {
