@@ -5,6 +5,11 @@ const navLinks = document.querySelector('.nav-links');
 const navLinkItems = document.querySelectorAll('.nav-link');
 const sections = document.querySelectorAll('section');
 const skillBars = document.querySelectorAll('.skill-progress');
+const scrollProgress = document.querySelector('.scroll-progress');
+const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+const bgGrid = document.querySelector('.bg-grid');
+const spotlight = document.querySelector('.cursor-spotlight');
+const codeWindow = document.querySelector('.code-window');
 
 // ===== Intro Overlay Logic =====
 function initIntro() {
@@ -49,8 +54,13 @@ function initIntro() {
                         setTimeout(() => {
                             introOverlay.classList.add('hidden');
                             document.body.classList.remove('no-scroll');
-                            initTypingAnimation();
-                        }, 2000);
+                            // Explicitly trigger typing now
+                            if (window.startHeroTyping) {
+                                window.startHeroTyping();
+                            } else {
+                                initTypingAnimation(true);
+                            }
+                        }, 800);
                     }
                 }
                 
@@ -62,27 +72,7 @@ function initIntro() {
 
 document.addEventListener('DOMContentLoaded', initIntro);
 
-// ===== Navbar Scroll Effect =====
-window.addEventListener('scroll', () => {
-    if (window.pageYOffset > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
-}, { passive: true });
-
-// ===== Scroll Progress Bar =====
-const scrollProgress = document.querySelector('.scroll-progress');
-
-window.addEventListener('scroll', () => {
-    const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = (window.pageYOffset / totalHeight) * 100;
-    if (scrollProgress) {
-        scrollProgress.style.width = `${progress}%`;
-    }
-}, { passive: true });
-
-// ===== Mobile Navigation Toggle =====
+// ===== Nav & Scroll Listeners =====
 navToggle.addEventListener('click', () => {
     navToggle.classList.toggle('active');
     navLinks.classList.toggle('active');
@@ -95,9 +85,49 @@ navLinkItems.forEach(link => {
     });
 });
 
-// ===== Active Navigation =====
-const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+// ===== Optimized Scroll Handler =====
+let scrollTicking = false;
+window.addEventListener('scroll', () => {
+    if (!scrollTicking) {
+        window.requestAnimationFrame(() => {
+            // Navbar Effect
+            if (window.pageYOffset > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
 
+            // Scroll Progress
+            const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (window.pageYOffset / totalHeight) * 100;
+            if (scrollProgress) {
+                scrollProgress.style.width = `${progress}%`;
+            }
+
+            // Background Grid Rotation (Desktop Only)
+            if (bgGrid && window.innerWidth > 1024 && !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                // Use stateless rotation based on scroll position for consistency
+                const rotation = window.pageYOffset * 0.05; 
+                bgGrid.style.transform = `rotate(${rotation}deg)`;
+                
+                if (!bgGrid.classList.contains('scrolling')) {
+                    bgGrid.classList.add('scrolling');
+                }
+                
+                clearTimeout(bgGrid.scrollTimer);
+                bgGrid.scrollTimer = setTimeout(() => bgGrid.classList.remove('scrolling'), 200);
+            }
+
+            // Update Active Nav
+            updateActiveNav();
+
+            scrollTicking = false;
+        });
+        scrollTicking = true;
+    }
+}, { passive: true });
+
+// ===== Active Navigation Loop =====
 function updateActiveNav() {
     let current = '';
     const scrollPos = window.pageYOffset;
@@ -107,7 +137,8 @@ function updateActiveNav() {
     // Check if at bottom of page - activate last section (contact)
     if (scrollPos + windowHeight >= documentHeight - 50) {
         const allSections = Array.from(sections);
-        current = allSections[allSections.length - 1].getAttribute('id');
+        const lastSection = allSections[allSections.length - 1];
+        if(lastSection) current = lastSection.getAttribute('id');
     } else {
         sections.forEach(section => {
             const sectionTop = section.offsetTop - 150;
@@ -132,8 +163,8 @@ function updateActiveNav() {
         }
     });
 }
-
-window.addEventListener('scroll', updateActiveNav, { passive: true });
+window.addEventListener('scroll', updateActiveNav, { passive: true }); // Backup listener if rAF fails, or redundant but safe
+document.addEventListener('DOMContentLoaded', updateActiveNav);
 
 // ===== Smooth Scroll =====
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -219,8 +250,9 @@ function initScrollAnimations() {
     
     allElements.forEach(el => observer.observe(el));
 }
+document.addEventListener('DOMContentLoaded', initScrollAnimations);
 
-// ===== TYPING ANIMATION - ONLY SECTION TITLES =====
+// ===== TYPING ANIMATION (SECTION TITLES) =====
 function initTypingEffects() {
     // Only section titles - NOT cards
     const typingTargets = document.querySelectorAll('.section-title');
@@ -306,9 +338,6 @@ function initTypingEffects() {
     
     typingTargets.forEach(el => typingObserver.observe(el));
 }
-
-// Initialize after DOM ready
-document.addEventListener('DOMContentLoaded', initScrollAnimations);
 document.addEventListener('DOMContentLoaded', initTypingEffects);
 
 // ===== Code Rotation =====
@@ -370,41 +399,85 @@ function initCodeRotation() {
     codeElement.style.transition = 'opacity 0.3s ease';
     setInterval(rotateCode, 4000);
 }
+document.addEventListener('DOMContentLoaded', initCodeRotation);
 
-// ===== Typing Animation =====
-function initTypingAnimation() {
+
+// ===== HERO TYPING ANIMATION (FIXED & ROBUST) =====
+function initTypingAnimation(forceStart = false) {
     const textToType = "Hi, I'm Jihan Nugraha";
     const typingElement = document.querySelector('.typing-text');
     if (!typingElement) return;
-
-    typingElement.textContent = "";
-    let charIndex = 0;
     
-    function type() {
-        if (charIndex < textToType.length) {
-            typingElement.textContent += textToType.charAt(charIndex);
-            charIndex++;
-            setTimeout(type, 100);
-        } else {
-            typingElement.innerHTML = textToType.replace("Jihan Nugraha", '<span class="highlight">Jihan Nugraha</span>');
-        }
+    // Always clear initially if not started
+    if (!typingElement.dataset.started) {
+        typingElement.textContent = "";
+        typingElement.style.visibility = 'visible'; // Ensure visibility when starting
     }
-    
-    // Delay start for 2.5 seconds (after intro / page load)
-    setTimeout(type, 1);
-}
 
-// Initialize code rotation
-document.addEventListener('DOMContentLoaded', () => {
-    initCodeRotation();
-    updateActiveNav();
-});
+    let isTyping = false;
+
+    // Typing logic
+    function type() {
+        if (isTyping || typingElement.dataset.started === 'true') return;
+        isTyping = true;
+        typingElement.dataset.started = 'true';
+        
+        // Ensure cursor is visible
+        const cursor = document.querySelector('.cursor');
+        if(cursor) cursor.style.display = 'inline-block';
+        
+        typingElement.textContent = "";
+        let charIndex = 0;
+
+        function typeChar() {
+            if (charIndex < textToType.length) {
+                typingElement.textContent += textToType.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeChar, 100);
+            } else {
+                typingElement.innerHTML = textToType.replace("Jihan Nugraha", '<span class="highlight">Jihan Nugraha</span>');
+                isTyping = false;
+            }
+        }
+        
+        typeChar();
+    }
+
+    // Trigger logic:
+    // 1. If forceStart (from InitIntro) is true -> start immediately
+    // 2. If observer sees it AND intro is HIDDEN -> start
+    
+    if (forceStart) {
+        type();
+        return;
+    }
+
+    // Observer as fallback/trigger when visible
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            // Only auto-start if INTRO IS GONE
+            const intro = document.getElementById('intro-overlay');
+            const isIntroGone = !intro || intro.classList.contains('hidden') || getComputedStyle(intro).display === 'none';
+            
+            if (entry.isIntersecting && isIntroGone) {
+                setTimeout(type, 50); 
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    observer.observe(typingElement);
+    
+    // Expose for external call
+    window.startHeroTyping = type; 
+}
+// Note: We don't auto-run initTypingAnimation() here anymore, we let InitIntro call it
+// OR strictly DOMContentLoaded if intro is missing.
+document.addEventListener('DOMContentLoaded', () => initTypingAnimation(false));
+
+
 
 // ===== Mouse Effects (Desktop Only) =====
-const spotlight = document.querySelector('.cursor-spotlight');
-const codeWindow = document.querySelector('.code-window');
-
-if (window.innerWidth > 968) {
+if (window.innerWidth > 968 && !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
     document.addEventListener('mousemove', (e) => {
         if (spotlight) {
             spotlight.style.opacity = '1';
@@ -432,18 +505,4 @@ if (window.innerWidth > 968) {
         if (spotlight) spotlight.style.opacity = '0';
         if (codeWindow) codeWindow.style.transform = 'none';
     });
-}
-
-// ===== Background Grid Rotation =====
-const bgGrid = document.querySelector('.bg-grid');
-if (bgGrid && window.innerWidth > 968) {
-    let rotation = 0;
-    
-    window.addEventListener('scroll', () => {
-        rotation += 0.1;
-        bgGrid.style.transform = `rotate(${rotation}deg)`;
-        bgGrid.classList.add('scrolling');
-        clearTimeout(window.scrollTimer);
-        window.scrollTimer = setTimeout(() => bgGrid.classList.remove('scrolling'), 200);
-    }, { passive: true });
 }

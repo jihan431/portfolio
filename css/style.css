@@ -1547,8 +1547,7 @@ section {
 
     .code-window {
         max-width: 100%;
-        height: auto;
-        min-height: 200px;
+        height: 250px;
         background: rgba(15, 15, 15, 0.7);
         border: 1px solid rgba(255, 255, 255, 0.08);
         box-shadow: 
@@ -2045,7 +2044,7 @@ section {
 
     /* Floating Project Cards */
     .project-card {
-        animation: floatCard 6s ease-in-out infinite;
+        /* animation: floatCard 6s ease-in-out infinite; */
         border: 1px solid rgba(255,255,255,0.08);
     }
 
@@ -2513,6 +2512,7 @@ section {
 
 @media (max-width: 480px) {
     .intro-btn { padding: 8px 16px; font-size: 0.65rem; letter-spacing: 0.5px; }
+    .cinematic-text { font-size: 0.6rem !important; letter-spacing: 1px; }
 }
 
 /* ===== Cinematic Text Sequence ===== */
@@ -2584,18 +2584,18 @@ section {
 /* Final smooth transition to portfolio */
 #intro-overlay.final-transition {
     opacity: 0;
-    transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 1.0s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #intro-overlay.final-transition .intro-decoration {
     opacity: 0;
     transform: translate(-50%, -50%) scale(1.1);
-    transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 1.0s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #intro-overlay.final-transition .intro-orb {
     opacity: 0;
-    transition: opacity 1.2s ease;
+    transition: opacity 1.0s ease;
 }
 
 @keyframes float {
